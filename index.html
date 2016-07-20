@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script   src="https://code.jquery.com/jquery-3.1.0.js"   integrity="sha256-slogkvB1K3VOkzAI8QITxV3VzpOnkeNVsKvtkYLMjfk="   crossorigin="anonymous"></script>
+</head>
+<body>
+
+	<div id="user"></div>
+	<div id="month"></div>
+	<div id="title"></div>
+
+	<script>
+
+		var movies, checkouts, break1, break2, id, title, year, usercount = {}, moncount = {}, moviecount = {}, maxuser, users, maxmon, mons, maxmovie, titles;
+
+		$.get("http://159.203.175.239:8080/movies.txt",function(resmovies) {
+			$.get("http://159.203.175.239:8080/checkouts.txt", function(rescheckouts) {
+				movies = resmovies.replace("#IMDB TOP 250\n#http://www.imdb.com/chart/top\n","");
+				checkouts = rescheckouts;
+				// split up each record into it's own array element
+				movies = movies.split("\n");
+				checkouts = checkouts.split("\n");
+				// split each record into 3 array elements
+				for (var i = 0; i < checkouts.length; i++) {
+					checkouts[i] = checkouts[i].split(" ");
+				}
+				for (i = 0; i < movies.length; i++) {
+					break1 = movies[i].search(/\d\s/);
+					break2 = movies[i].search(/\s\(\d\d\d\d\)/);
+					id = movies[i].slice(0, break1 + 1);
+					title = movies[i].slice(break1 + 2, break2);
+					year = movies[i].slice(break2 + 2, break2 + 6);
+					movies[i] = [id, title, year];
+				}
+				for (i = 0; i < checkouts.length; i++) {
+					if (usercount[checkouts[i][0]] === undefined) {
+						usercount[checkouts[i][0]] = 0;
+					}
+					usercount[checkouts[i][0]] = usercount[checkouts[i][0]] + 1;
+				}
+				for (i = 0; i < checkouts.length; i++) {
+					if (moncount[checkouts[i][1]] === undefined) {
+						moncount[checkouts[i][1]] = 0;
+					}
+					moncount[checkouts[i][1]] = moncount[checkouts[i][1]] + 1;
+				}
+				for (i = 0; i < checkouts.length; i++) {
+					if (moviecount[checkouts[i][2]] === undefined) {
+						moviecount[checkouts[i][2]] = 0;
+					}
+					moviecount[checkouts[i][2]] = moviecount[checkouts[i][2]] + 1;
+				}
+				maxuser = 0;
+				users = "";
+				for (var key in usercount) {
+					if (usercount[key] === maxuser) {
+						users += ", " + key;
+					}
+					if (usercount[key] > maxuser) {
+						users = key;
+						maxuser = usercount[key];
+					}
+				}
+				maxmon = 0;
+				mons = "";
+				for (var key in moncount) {
+					if (moncount[key] === maxmon) {
+						mons += ", " + key;
+					}
+					if (moncount[key] > maxmon) {
+						mons = key;
+						maxmon = moncount[key];
+					}
+				}
+				maxmovie = 0;
+				titles = "";
+				for (var key in moviecount) {
+					if (moviecount[key] === maxmovie) {
+						titles += ", " + titleFromId(key);
+					}
+					if (moviecount[key] > maxmovie) {
+						titles = titleFromId(key);
+						maxmovie = moviecount[key];
+					}
+				}
+
+		function titleFromId(id) {
+			for (var i = 0; i < movies.length; i++) {
+				if (movies[i][0] === id) {
+					return movies[i][1];
+				}
+			}
+		}
+
+		$('#user').html("User(s) with the most checkouts: " + users);
+		$('#month').html("Month(s) with the most checkouts: " + mons);
+		$('#title').html("Title(s) with the most checkouts: " + titles);
+
+			});
+		});
+
+	</script>
+
+</body>
+</html>
+
